@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BarChart3, LayoutDashboard, ListChecks, Sparkles, SquareStack } from 'lucide-react'
+import { BarChart3, LayoutDashboard, ListChecks, ShieldCheck, Sparkles, SquareStack } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const NAV_ITEMS = [
@@ -13,12 +13,15 @@ const NAV_ITEMS = [
   { href: '/flashcards', label: 'Flashcards', icon: Sparkles },
 ] as const
 
-export function Sidebar() {
+export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {
   const pathname = usePathname()
+  const navItems = isAdmin
+    ? [...NAV_ITEMS, { href: '/admin/solicitacoes', label: 'Solicitações', icon: ShieldCheck }]
+    : NAV_ITEMS
 
   return (
     <nav className="flex flex-row gap-1 overflow-x-auto p-2 md:flex-col md:overflow-visible md:p-3">
-      {NAV_ITEMS.map((item) => {
+      {navItems.map((item) => {
         const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`)
         const Icon = item.icon
         return (

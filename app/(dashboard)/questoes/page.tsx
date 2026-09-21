@@ -1,23 +1,21 @@
 import Link from 'next/link'
-import { ListChecks, Pencil, Plus, Sparkles } from 'lucide-react'
+import { ListChecks, Plus } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server'
 import { SubjectManager } from '@/components/questoes/subject-manager'
 import { TagManager } from '@/components/tags/tag-manager'
 import { QuestionFilters } from '@/components/questoes/question-filters'
-import { DeleteQuestionButton } from '@/components/questoes/delete-question-button'
-import { TagBadge } from '@/components/tags/tag-badge'
-import { Badge } from '@/components/ui/badge'
+import { QuestionPagination } from '@/components/questoes/question-pagination'
+import { QuestionPracticeCard } from '@/components/questoes/question-practice-card'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { EmptyState } from '@/components/shared/empty-state'
-import { createFlashcardFromQuestion } from '@/lib/actions/flashcards'
-import { DIFFICULTY_LABELS } from '@/lib/utils/format'
 import type { Difficulty, Tag } from '@/lib/types'
+
+const PAGE_SIZE = 10
 
 export default async function QuestoesPage({
   searchParams,
 }: {
-  searchParams: { subject?: string; tag?: string; difficulty?: string }
+  searchParams: { subject?: string; tag?: string; difficulty?: string; page?: string }
 }) {
   const supabase = createClient()
 
@@ -28,7 +26,7 @@ export default async function QuestoesPage({
 
   let query = supabase
     .from('questions')
-    .select('id, statement, subject_id, difficulty, created_at')
+    .select('id, statement, subject_id, difficulty, options, correct_option, explanation, created_at')
     .order('created_at', { ascending: false })
 
   if (searchParams.subject) query = query.eq('subject_id', searchParams.subject)
@@ -58,12 +56,19 @@ export default async function QuestoesPage({
     filteredQuestions = filteredQuestions.filter((q) => (tagIdsByQuestion.get(q.id) ?? []).includes(tagFilter))
   }
 
+  // Paginação: 10 questões por página, aplicada depois dos filtros.
+  const totalPages = Math.max(1, Math.ceil(filteredQuestions.length / PAGE_SIZE))
+  const currentPage = Math.min(Math.max(1, Number(searchParams.page) || 1), totalPages)
+  const pageQuestions = filteredQuestions.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">Questões</h1>
-          <p className="text-sm text-muted-foreground">Seu banco de questões de múltipla escolha.</p>
+          <p className="text-sm text-muted-foreground">
+            Modo prática: filtre, responda e veja na hora se acertou. Para uma prova cronometrada, use o Simulado.
+          </p>
         </div>
         <Button asChild>
           <Link href="/questoes/nova">
@@ -88,7 +93,7 @@ export default async function QuestoesPage({
 
       <QuestionFilters subjects={subjects ?? []} tags={tags ?? []} />
 
-      {filteredQuestions.length === 0 ? (
+      {pageQuestions.length === 0 ? (
         <EmptyState
           icon={ListChecks}
           title="Nenhuma questão encontrada"
@@ -100,45 +105,34 @@ export default async function QuestoesPage({
           }
         />
       ) : (
-        <div className="space-y-3">
-          {filteredQuestions.map((question) => {
-            const questionTagList: Tag[] = (tagIdsByQuestion.get(question.id) ?? [])
-              .map((id) => tagsById.get(id))
-              .filter((t): t is Tag => Boolean(t))
-            const subject = question.subject_id ? subjectsById.get(question.subject_id) : null
+        <>
+          <div className="space-y-3">
+            {pageQuestions.map((question) => {
+              const questionTagList: Tag[] = (tagIdsByQuestion.get(question.id) ?? [])
+                .map((id) => tagsById.get(id))
+                .filter((t): t is Tag => Boolean(t))
+              const subject = question.subject_id ? subjectsById.get(question.subject_id) : null
 
-            return (
-              <Card key={question.id}>
-                <CardContent className="flex flex-col gap-3 pt-6 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="space-y-2">
-                    <p className="text-sm font-medium leading-relaxed">{question.statement}</p>
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      {subject && <Badge variant="outline">{subject.name}</Badge>}
-                      <Badge variant="secondary">{DIFFICULTY_LABELS[question.difficulty]}</Badge>
-                      {questionTagList.map((tag) => (
-                        <TagBadge key={tag.id} tag={tag} />
-                      ))}
-                    </div>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-1">
-                    <form action={createFlashcardFromQuestion}>
-                      <input type="hidden" name="questionId" value={question.id} />
-                      <Button type="submit" variant="ghost" size="icon" aria-label="Criar flashcard desta questão">
-                        <Sparkles className="h-4 w-4" />
-                      </Button>
-                    </form>
-                    <Button asChild variant="ghost" size="icon" aria-label="Editar questão">
-                      <Link href={`/questoes/${question.id}/editar`}>
-                        <Pencil className="h-4 w-4" />
-                      </Link>
-                    </Button>
-                    <DeleteQuestionButton id={question.id} />
-                  </div>
-                </CardContent>
-              </Card>
-            )
-          })}
-        </div>
+              return (
+                <QuestionPracticeCard
+                  key={question.id}
+                  question={{
+                    id: question.id,
+                    statement: question.statement,
+                    options: question.options,
+                    correctOption: question.correct_option,
+                    explanation: question.explanation,
+                    difficulty: question.difficulty,
+                  }}
+                  subjectName={subject?.name ?? null}
+                  tags={questionTagList}
+                />
+              )
+            })}
+          </div>
+
+          <QuestionPagination currentPage={currentPage} totalPages={totalPages} />
+        </>
       )}
     </div>
   )

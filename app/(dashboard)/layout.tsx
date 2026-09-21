@@ -13,6 +13,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // Segunda camada de proteção além do middleware (defesa em profundidade).
   if (!user) redirect('/login')
 
+  const { data: profile } = await supabase.from('profiles').select('is_admin').eq('id', user.id).single()
+
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
       <aside className="border-b md:w-64 md:shrink-0 md:border-b-0 md:border-r">
@@ -20,7 +22,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <GraduationCap className="h-5 w-5 text-primary" />
           Simulador de Provas
         </div>
-        <Sidebar />
+        <Sidebar isAdmin={profile?.is_admin ?? false} />
       </aside>
 
       <div className="flex flex-1 flex-col">

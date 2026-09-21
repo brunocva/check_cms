@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
-export function RegisterForm() {
+export function RegisterForm({ devMode = false }: { devMode?: boolean }) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -30,7 +30,7 @@ export function RegisterForm() {
     }
 
     startTransition(async () => {
-      const result = await signUpAction({ name, email, password })
+      const result = await signUpAction({ name, email, password, devRequest: devMode })
       if (result?.error) setError(result.error)
       if (result?.needsEmailConfirmation) setNeedsConfirmation(true)
     })
@@ -43,12 +43,24 @@ export function RegisterForm() {
         <p>
           Enviamos um link de confirmação para <strong>{email}</strong>. Abra seu e-mail para ativar a conta.
         </p>
+        {devMode && (
+          <p>
+            Depois de confirmar o e-mail, sua conta ainda fica pendente até um administrador aprovar o acesso de
+            desenvolvedor.
+          </p>
+        )}
       </div>
     )
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      {devMode && (
+        <p className="rounded-md bg-accent p-3 text-sm text-accent-foreground">
+          Este cadastro solicita acesso de desenvolvedor. Um administrador precisa aprovar antes que você tenha
+          permissões administrativas.
+        </p>
+      )}
       {error && <p className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{error}</p>}
 
       <div className="space-y-2">
@@ -84,7 +96,7 @@ export function RegisterForm() {
         />
       </div>
       <Button type="submit" className="w-full" disabled={isPending}>
-        {isPending ? 'Criando conta...' : 'Criar conta'}
+        {isPending ? 'Criando conta...' : devMode ? 'Solicitar acesso de desenvolvedor' : 'Criar conta'}
       </Button>
 
       <p className="text-center text-sm text-muted-foreground">
@@ -93,6 +105,15 @@ export function RegisterForm() {
           Entrar
         </Link>
       </p>
+
+      {!devMode && (
+        <p className="text-center text-sm text-muted-foreground">
+          É desenvolvedor?{' '}
+          <Link href="/register/desenvolvedor" className="font-medium text-primary hover:underline">
+            Solicitar acesso administrativo
+          </Link>
+        </p>
+      )}
     </form>
   )
 }

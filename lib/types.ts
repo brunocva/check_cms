@@ -10,6 +10,7 @@ import type {
   QuestionOption,
 } from './supabase/types'
 
+export type Profile = Database['public']['Tables']['profiles']['Row']
 export type Subject = Database['public']['Tables']['subjects']['Row']
 export type Tag = Database['public']['Tables']['tags']['Row']
 export type Question = Database['public']['Tables']['questions']['Row']

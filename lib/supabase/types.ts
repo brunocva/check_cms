@@ -23,9 +23,30 @@ export interface Database {
   public: {
     Tables: {
       profiles: {
-        Row: { id: string; full_name: string | null; created_at: string }
-        Insert: { id: string; full_name?: string | null; created_at?: string }
-        Update: { id?: string; full_name?: string | null; created_at?: string }
+        Row: {
+          id: string
+          full_name: string | null
+          email: string | null
+          is_admin: boolean
+          admin_requested_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id: string
+          full_name?: string | null
+          email?: string | null
+          is_admin?: boolean
+          admin_requested_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          full_name?: string | null
+          email?: string | null
+          is_admin?: boolean
+          admin_requested_at?: string | null
+          created_at?: string
+        }
         Relationships: []
       }
       subjects: {

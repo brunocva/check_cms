@@ -16,6 +16,7 @@ export function QuestionFilters({ subjects, tags }: { subjects: Subject[]; tags:
     const params = new URLSearchParams(searchParams.toString())
     if (value) params.set(key, value)
     else params.delete(key)
+    params.delete('page') // muda o filtro, volta para a primeira página
     router.push(`${pathname}?${params.toString()}`)
   }
 

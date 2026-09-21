@@ -33,6 +33,7 @@ export async function signUpAction(input: {
   name: string
   email: string
   password: string
+  devRequest?: boolean
 }): Promise<{ error?: string; needsEmailConfirmation?: boolean }> {
   const supabase = createClient()
 
@@ -40,7 +41,7 @@ export async function signUpAction(input: {
     email: input.email,
     password: input.password,
     options: {
-      data: { full_name: input.name },
+      data: { full_name: input.name, dev_request: input.devRequest ?? false },
       emailRedirectTo: `${siteUrl}/auth/callback?next=/dashboard`,
     },
   })

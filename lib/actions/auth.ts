@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000'
 
@@ -54,6 +55,27 @@ export async function signUpAction(input: {
   // signUp já retorna uma sessão ativa e podemos ir direto pro dashboard.
   if (data.session) {
     redirect('/dashboard')
+  }
+
+  // Confirmação de e-mail continua exigida no projeto Supabase (o envio de
+  // e-mail pelo provedor gratuito é pouco confiável), então confirmamos a
+  // conta na hora com a service_role key e já fazemos login, sem depender
+  // do e-mail chegar. `data.user` só é null aqui se o e-mail já existir e já
+  // estiver confirmado (Supabase responde de forma ofuscada por segurança);
+  // nesse caso mantemos o comportamento antigo.
+  if (data.user) {
+    const admin = createAdminClient()
+    const { error: confirmError } = await admin.auth.admin.updateUserById(data.user.id, { email_confirm: true })
+
+    if (!confirmError) {
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: input.email,
+        password: input.password,
+      })
+      if (!signInError) {
+        redirect('/dashboard')
+      }
+    }
   }
 
   return { needsEmailConfirmation: true }

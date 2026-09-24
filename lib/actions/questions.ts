@@ -3,6 +3,7 @@
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase/server'
+import { assertIsAdmin } from '@/lib/supabase/require-admin'
 import type { Difficulty, QuestionOption } from '@/lib/types'
 
 export interface QuestionInput {
@@ -28,10 +29,13 @@ function validate(input: QuestionInput): string | null {
 // Chamada diretamente do QuestionForm (client component) -> objeto tipado.
 export async function createQuestion(input: QuestionInput): Promise<{ error?: string; id?: string }> {
   const supabase = createClient()
+
+  const authError = await assertIsAdmin(supabase)
+  if (authError) return { error: authError }
+
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) return { error: 'Não autenticado.' }
 
   const validationError = validate(input)
   if (validationError) return { error: validationError }
@@ -41,7 +45,7 @@ export async function createQuestion(input: QuestionInput): Promise<{ error?: st
   const { data, error } = await supabase
     .from('questions')
     .insert({
-      user_id: user.id,
+      user_id: user!.id,
       subject_id: input.subjectId,
       statement: input.statement.trim(),
       options,
@@ -66,6 +70,9 @@ export async function updateQuestion(
   input: QuestionInput & { id: string }
 ): Promise<{ error?: string }> {
   const supabase = createClient()
+
+  const authError = await assertIsAdmin(supabase)
+  if (authError) return { error: authError }
 
   const validationError = validate(input)
   if (validationError) return { error: validationError }
@@ -103,6 +110,10 @@ export async function deleteQuestion(formData: FormData) {
   if (!id) return
 
   const supabase = createClient()
+
+  const authError = await assertIsAdmin(supabase)
+  if (authError) return
+
   await supabase.from('questions').delete().eq('id', id)
 
   revalidatePath('/questoes')

@@ -19,6 +19,14 @@ export default async function QuestoesPage({
 }) {
   const supabase = createClient()
 
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  const { data: profile } = user
+    ? await supabase.from('profiles').select('is_admin').eq('id', user.id).single()
+    : { data: null }
+  const isAdmin = profile?.is_admin ?? false
+
   const [{ data: subjects }, { data: tags }] = await Promise.all([
     supabase.from('subjects').select('*').order('name'),
     supabase.from('tags').select('*').order('name'),
@@ -70,26 +78,30 @@ export default async function QuestoesPage({
             Modo prática: filtre, responda e veja na hora se acertou. Para uma prova cronometrada, use o Simulado.
           </p>
         </div>
-        <Button asChild>
-          <Link href="/questoes/nova">
-            <Plus className="h-4 w-4" /> Nova questão
-          </Link>
-        </Button>
+        {isAdmin && (
+          <Button asChild>
+            <Link href="/questoes/nova">
+              <Plus className="h-4 w-4" /> Nova questão
+            </Link>
+          </Button>
+        )}
       </div>
 
-      <details className="rounded-lg border p-4">
-        <summary className="cursor-pointer text-sm font-medium">Gerenciar matérias e tags</summary>
-        <div className="mt-4 space-y-6">
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Matérias</p>
-            <SubjectManager subjects={subjects ?? []} />
+      {isAdmin && (
+        <details className="rounded-lg border p-4">
+          <summary className="cursor-pointer text-sm font-medium">Gerenciar matérias e tags</summary>
+          <div className="mt-4 space-y-6">
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Matérias</p>
+              <SubjectManager subjects={subjects ?? []} />
+            </div>
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Tags</p>
+              <TagManager tags={tags ?? []} />
+            </div>
           </div>
-          <div>
-            <p className="mb-2 text-xs font-semibold uppercase text-muted-foreground">Tags</p>
-            <TagManager tags={tags ?? []} />
-          </div>
-        </div>
-      </details>
+        </details>
+      )}
 
       <QuestionFilters subjects={subjects ?? []} tags={tags ?? []} />
 
@@ -97,11 +109,13 @@ export default async function QuestoesPage({
         <EmptyState
           icon={ListChecks}
           title="Nenhuma questão encontrada"
-          description="Ajuste os filtros ou cadastre sua primeira questão."
+          description={isAdmin ? 'Ajuste os filtros ou cadastre sua primeira questão.' : 'Ajuste os filtros de busca.'}
           action={
-            <Button asChild>
-              <Link href="/questoes/nova">Nova questão</Link>
-            </Button>
+            isAdmin ? (
+              <Button asChild>
+                <Link href="/questoes/nova">Nova questão</Link>
+              </Button>
+            ) : undefined
           }
         />
       ) : (
@@ -126,6 +140,7 @@ export default async function QuestoesPage({
                   }}
                   subjectName={subject?.name ?? null}
                   tags={questionTagList}
+                  isAdmin={isAdmin}
                 />
               )
             })}

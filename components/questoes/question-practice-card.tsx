@@ -30,10 +30,12 @@ export function QuestionPracticeCard({
   question,
   subjectName,
   tags,
+  isAdmin,
 }: {
   question: PracticeQuestion
   subjectName: string | null
   tags: Tag[]
+  isAdmin: boolean
 }) {
   const [selected, setSelected] = useState<string | null>(null)
   const isAnswered = selected !== null
@@ -60,12 +62,16 @@ export function QuestionPracticeCard({
                 <Sparkles className="h-4 w-4" />
               </Button>
             </form>
-            <Button asChild variant="ghost" size="icon" aria-label="Editar questão">
-              <Link href={`/questoes/${question.id}/editar`}>
-                <Pencil className="h-4 w-4" />
-              </Link>
-            </Button>
-            <DeleteQuestionButton id={question.id} />
+            {isAdmin && (
+              <>
+                <Button asChild variant="ghost" size="icon" aria-label="Editar questão">
+                  <Link href={`/questoes/${question.id}/editar`}>
+                    <Pencil className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <DeleteQuestionButton id={question.id} />
+              </>
+            )}
           </div>
         </div>
 

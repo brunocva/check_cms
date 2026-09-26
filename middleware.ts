@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 
 // Prefixos de rota que exigem sessão ativa.
-const PROTECTED_PREFIXES = ['/dashboard', '/simulado', '/progresso', '/questoes', '/flashcards']
+const PROTECTED_PREFIXES = ['/dashboard', '/simulado', '/questoes', '/flashcards']
 // Rotas que não fazem sentido para quem já está logado.
 const AUTH_ONLY_PATHS = ['/login', '/register']
 

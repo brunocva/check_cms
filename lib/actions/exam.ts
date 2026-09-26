@@ -147,6 +147,5 @@ export async function finishExamSession(input: {
     .eq('id', input.sessionId)
 
   revalidatePath('/dashboard')
-  revalidatePath('/progresso')
   redirect(`/simulado/${input.sessionId}/resultado`)
 }

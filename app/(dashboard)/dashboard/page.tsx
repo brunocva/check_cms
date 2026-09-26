@@ -4,18 +4,28 @@ import { createClient } from '@/lib/supabase/server'
 import { StatCard } from '@/components/shared/stat-card'
 import { EmptyState } from '@/components/shared/empty-state'
 import { LineAccuracyChart } from '@/components/graficos/line-accuracy-chart'
+import { BarSubjectChart } from '@/components/graficos/bar-subject-chart'
+import { BarTagChart } from '@/components/graficos/bar-tag-chart'
+import { PieSessionChart } from '@/components/graficos/pie-session-chart'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Button } from '@/components/ui/button'
 import {
   computeAccuracyOverTime,
   computeFocusAreas,
+  computeLastSessionBreakdown,
   computeSubjectPerformance,
   computeSummaryCards,
   computeTagPerformance,
 } from '@/lib/utils/metrics'
-import { formatPercent } from '@/lib/utils/format'
+import { formatDateTime, formatPercent, MODE_LABELS } from '@/lib/utils/format'
 
+// Página única de desempenho: resumo rápido (KPIs + onde focar) no topo,
+// seguido da análise completa (gráficos por matéria/tag, última sessão e
+// histórico) — antes eram duas páginas (Dashboard e Progresso) com o mesmo
+// gráfico de evolução duplicado entre elas.
 export default async function DashboardPage() {
   const supabase = createClient()
   const {
@@ -32,19 +42,24 @@ export default async function DashboardPage() {
       supabase.from('questions').select('id, subject_id'),
       supabase.from('question_tags').select('question_id, tag_id'),
       supabase.from('answers').select('id, question_id, session_id, is_correct'),
-      supabase.from('exam_sessions').select('id, score, finished_at, mode').order('finished_at', { ascending: true }),
+      supabase
+        .from('exam_sessions')
+        .select('id, score, finished_at, mode, total_questions, correct_count')
+        .order('finished_at', { ascending: false }),
     ])
 
   const answersData = answers ?? []
   const sessionsData = sessions ?? []
+  const finishedSessions = sessionsData.filter((s) => s.finished_at)
 
   const accuracyOverTime = computeAccuracyOverTime(sessionsData)
   const subjectPerformance = computeSubjectPerformance(answersData, questions ?? [], subjects ?? [])
   const tagPerformance = computeTagPerformance(answersData, questionTags ?? [], tags ?? [])
   const summary = computeSummaryCards(sessionsData, answersData, subjectPerformance, tagPerformance)
   const focusAreas = computeFocusAreas(subjectPerformance, tagPerformance, 5)
+  const lastSession = computeLastSessionBreakdown(sessionsData, answersData)
 
-  const hasData = sessionsData.some((s) => s.finished_at)
+  const hasData = finishedSessions.length > 0
   const firstName = (user?.user_metadata?.full_name as string | undefined)?.split(' ')[0]
 
   return (
@@ -54,18 +69,20 @@ export default async function DashboardPage() {
           <h1 className="text-2xl font-semibold">Olá{firstName ? `, ${firstName}` : ''} 👋</h1>
           <p className="text-sm text-muted-foreground">Aqui está um resumo do seu desempenho.</p>
         </div>
-        <Button asChild>
-          <Link href="/simulado">
-            Novo simulado <ArrowRight className="h-4 w-4" />
-          </Link>
-        </Button>
+        {!hasData && (
+          <Button asChild>
+            <Link href="/simulado">
+              Novo simulado <ArrowRight className="h-4 w-4" />
+            </Link>
+          </Button>
+        )}
       </div>
 
       {!hasData ? (
         <EmptyState
           icon={ListChecks}
           title="Você ainda não finalizou nenhum simulado"
-          description="Cadastre questões e comece seu primeiro simulado para ver suas estatísticas aqui."
+          description="Comece seu primeiro simulado para ver suas estatísticas aqui."
           action={
             <Button asChild>
               <Link href="/simulado">Começar agora</Link>
@@ -128,13 +145,76 @@ export default async function DashboardPage() {
             </Card>
           </div>
 
-          <div className="flex justify-end">
-            <Button asChild variant="outline">
-              <Link href="/progresso">
-                Ver análise completa <ArrowRight className="h-4 w-4" />
-              </Link>
-            </Button>
+          <div className="grid gap-4 lg:grid-cols-3">
+            {lastSession && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Última sessão: acertos x erros</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <PieSessionChart data={lastSession.data} />
+                </CardContent>
+              </Card>
+            )}
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Desempenho por matéria</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {subjectPerformance.length > 0 ? (
+                  <BarSubjectChart data={subjectPerformance} />
+                ) : (
+                  <p className="text-sm text-muted-foreground">Sem dados.</p>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Desempenho por tag</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {tagPerformance.length > 0 ? (
+                  <BarTagChart data={tagPerformance} />
+                ) : (
+                  <p className="text-sm text-muted-foreground">Sem dados.</p>
+                )}
+              </CardContent>
+            </Card>
           </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Histórico de simulados</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data</TableHead>
+                    <TableHead>Modo</TableHead>
+                    <TableHead>Acertos</TableHead>
+                    <TableHead>Aproveitamento</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {finishedSessions.map((session) => (
+                    <TableRow key={session.id}>
+                      <TableCell>{formatDateTime(session.finished_at)}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{MODE_LABELS[session.mode]}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        {session.correct_count}/{session.total_questions}
+                      </TableCell>
+                      <TableCell>{formatPercent(session.score)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         </>
       )}
     </div>

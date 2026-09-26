@@ -2,15 +2,16 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BarChart3, LayoutDashboard, ListChecks, ShieldCheck, Sparkles, SquareStack } from 'lucide-react'
+import { LayoutDashboard, ListChecks, ShieldCheck, Sparkles, SquareStack } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
+// Ordem segue o fluxo natural de estudo: praticar questões, fazer um
+// simulado, reforçar com flashcards e, por fim, conferir o desempenho.
 const NAV_ITEMS = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/simulado', label: 'Simulado', icon: SquareStack },
-  { href: '/progresso', label: 'Progresso', icon: BarChart3 },
   { href: '/questoes', label: 'Questões', icon: ListChecks },
+  { href: '/simulado', label: 'Simulado', icon: SquareStack },
   { href: '/flashcards', label: 'Flashcards', icon: Sparkles },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
 ] as const
 
 export function Sidebar({ isAdmin = false }: { isAdmin?: boolean }) {

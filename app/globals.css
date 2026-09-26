@@ -3,27 +3,30 @@
 @tailwind utilities;
 
 @layer base {
+  /* Paleta "Aviação Clássica": azul aviador como cor de marca (farda de
+     comissário, não dourado de insígnia de comandante), com fundo/cartões
+     no modo escuro tingidos de azul-marinho em vez de cinza neutro. */
   :root {
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 243 75% 59%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 208 65% 32%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
+    --secondary: 210 30% 95%;
+    --secondary-foreground: 222 47% 11%;
 
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
+    --muted: 210 30% 95%;
+    --muted-foreground: 215 16% 47%;
 
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --accent: 210 30% 95%;
+    --accent-foreground: 222 47% 11%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
@@ -31,34 +34,36 @@
     --success: 142 71% 45%;
     --success-foreground: 0 0% 98%;
 
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 243 75% 59%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 208 65% 32%;
 
     --radius: 0.65rem;
   }
 
   .dark {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
+    --background: 222 47% 6%;
+    --foreground: 210 20% 96%;
 
-    --card: 240 10% 6%;
-    --card-foreground: 0 0% 98%;
+    /* Cartões nitidamente mais claros que o fundo (antes a diferença era
+       quase imperceptível), pra dar profundidade real à interface. */
+    --card: 222 40% 11%;
+    --card-foreground: 210 20% 96%;
 
-    --popover: 240 10% 6%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 222 40% 11%;
+    --popover-foreground: 210 20% 96%;
 
-    --primary: 243 75% 65%;
-    --primary-foreground: 240 10% 3.9%;
+    --primary: 208 65% 46%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 3.7% 15.9%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 222 30% 15%;
+    --secondary-foreground: 210 20% 96%;
 
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
+    --muted: 222 30% 15%;
+    --muted-foreground: 215 15% 65%;
 
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 222 30% 17%;
+    --accent-foreground: 210 20% 96%;
 
     --destructive: 0 62.8% 50.6%;
     --destructive-foreground: 0 0% 98%;
@@ -66,9 +71,9 @@
     --success: 142 71% 45%;
     --success-foreground: 0 0% 98%;
 
-    --border: 240 3.7% 15.9%;
-    --input: 240 3.7% 15.9%;
-    --ring: 243 75% 65%;
+    --border: 222 25% 19%;
+    --input: 222 25% 19%;
+    --ring: 208 65% 46%;
   }
 }
 

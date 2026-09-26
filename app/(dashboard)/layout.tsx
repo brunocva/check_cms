@@ -1,4 +1,4 @@
-import { GraduationCap } from 'lucide-react'
+import { Plane } from 'lucide-react'
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Sidebar } from '@/components/layout/sidebar'
@@ -19,7 +19,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <div className="flex min-h-screen flex-col md:flex-row">
       <aside className="border-b md:w-64 md:shrink-0 md:border-b-0 md:border-r">
         <div className="flex items-center gap-2 p-4 text-base font-semibold">
-          <GraduationCap className="h-5 w-5 text-primary" />
+          <Plane className="h-5 w-5 text-primary" />
           Simulador de Provas
         </div>
         <Sidebar isAdmin={profile?.is_admin ?? false} />

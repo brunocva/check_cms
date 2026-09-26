@@ -55,11 +55,11 @@ export function ConfigForm({ subjects, tags }: { subjects: Subject[]; tags: Tag[
               key={m}
               onClick={() => setMode(m)}
               className={cn(
-                'rounded-lg border p-3 text-left text-sm transition-colors',
-                mode === m ? 'border-primary bg-primary/10' : 'hover:bg-accent'
+                'rounded-lg border p-3 text-left text-sm font-medium transition-colors',
+                mode === m ? 'border-primary bg-primary text-primary-foreground' : 'hover:bg-accent'
               )}
             >
-              <span className="font-medium">{MODE_LABELS[m]}</span>
+              <span>{MODE_LABELS[m]}</span>
             </button>
           ))}
         </div>
